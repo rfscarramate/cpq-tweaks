@@ -1,7 +1,7 @@
 # CPQ Tweaks - Modular OTA userscripts
 
 This repository contains modular userscripts and a lightweight loader intended to be served via GitHub Pages.
-The Android WebView app (Signify CPQ) will fetch `loader.js` and the loader will orchestrate loading modules.
+The Android WebView app (CPQ) will fetch `loader.js` and the loader will orchestrate loading modules.
 
 ## Structure
 - `loader.js` - orchestrator (loads logic core, route-specific logic, and UI on mobile)
