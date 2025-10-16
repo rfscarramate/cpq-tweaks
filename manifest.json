@@ -1,0 +1,6 @@
+{
+  "name": "CPQ Tweaks (modular)",
+  "version": "1.0.0",
+  "description": "Modular OTA userscripts for Signify CPQ (logic prioritized, UI optional)",
+  "base_url": "https://rfscarramate.github.io/cpq-tweaks/"
+}
