@@ -3,58 +3,77 @@
 // - Loads logic/core.js always
 // - Loads logic/quotes.js if path includes /quotes/
 // - Loads ui/core.js and ui/quotes.js when on mobile viewport
-// - Persistent cache in localStorage, check on each page load (cache-busting by timestamp)
+// - Persistent cache in localStorage, refreshed every 24h
 (async function(){
   const BASE = 'https://rfscarramate.github.io/cpq-tweaks/';
   const PATH = window.location.pathname.toLowerCase();
-  const segment = PATH.split('/').filter(Boolean)[0] || 'root';
   const isQuotes = PATH.includes('/quotes/');
   const isMobile = window.innerWidth < 900 || /Android|iPhone/i.test(navigator.userAgent);
-  const CACHE_KEY = 'cpq_tweaks_mod_cache_v1';
+  const CACHE_PREFIX = 'cpq_tweaks_';
   const CACHE_TIME = 1000 * 60 * 60 * 24; // 24h
 
   function log(...args){ try{ console.log('[CPQ-Loader]', ...args); }catch(e){} }
 
+  function now(){ return Date.now(); }
+
   async function fetchText(url) {
-    const resp = await fetch(url, {cache: 'no-store'});
+    const resp = await fetch(url + '?t=' + now(), { cache: 'no-store' });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     return await resp.text();
   }
 
-  async function safeLoad(url) {
+  function getCache(key){
+    const raw = localStorage.getItem(CACHE_PREFIX + key);
+    if(!raw) return null;
     try {
-      const code = await fetchText(url + '?t=' + Date.now());
+      const data = JSON.parse(raw);
+      if(now() - data.time > CACHE_TIME) return null;
+      return data.code;
+    } catch(e){
+      return null;
+    }
+  }
+
+  function setCache(key, code){
+    try {
+      localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({code, time: now()}));
+    } catch(e){
+      log('Cache write failed', key, e);
+    }
+  }
+
+  async function loadModule(path){
+    const cacheKey = path.replace(/\//g,'_');
+    let code = getCache(cacheKey);
+    if(code){
+      window.CPQ_TWEAKS_LOAD_METHOD = 'Cache';
       (0,eval)(code);
-      log('Loaded', url);
+      log('Loaded from cache:', path);
       return true;
-    } catch (e) {
-      log('Failed to load', url, e);
+    }
+
+    try {
+      code = await fetchText(BASE + path);
+      setCache(cacheKey, code);
+      window.CPQ_TWEAKS_LOAD_METHOD = 'OTA';
+      (0,eval)(code);
+      log('Loaded OTA:', path);
+      return true;
+    } catch(e){
+      log('Failed to load', path, e);
       return false;
     }
   }
 
-  // try to use cache (loader-level); if not available fetch remote loader (this file)
   try {
-    // Always attempt to load logic/core.js
-    await safeLoad(BASE + 'logic/core.js');
-
-    // Load route-specific logic
-    if (isQuotes) {
-      await safeLoad(BASE + 'logic/quotes.js');
-    } else {
-      // no-op for now
+    await loadModule('logic/core.js');
+    if (isQuotes) await loadModule('logic/quotes.js');
+    if (isMobile){
+      await loadModule('ui/core.js');
+      if (isQuotes) await loadModule('ui/quotes.js');
     }
-
-    // UI on mobile only
-    if (isMobile) {
-      await safeLoad(BASE + 'ui/core.js');
-      if (isQuotes) {
-        await safeLoad(BASE + 'ui/quotes.js');
-      }
-    }
-
     log('Module loading complete.');
-  } catch (e) {
+  } catch(e){
     log('Loader top-level error', e);
   }
 })();

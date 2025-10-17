@@ -32,24 +32,29 @@
 
 (function showDebugBanner() {
   try {
-    const version = 'v0.9.3'; // 🔧 atualize conforme o controle de versão real
+    const version = 'v0.9.4'; // 🔧 atualize sempre que fizer mudanças relevantes
     const source = 'logic/core.js';
     const urlBase = 'https://rfscarramate.github.io/cpq-tweaks/';
     const fullSource = `${urlBase}${source}`;
     const timestamp = new Date().toLocaleString('pt-BR');
 
-    // Evita duplicação em recarregamentos parciais
+    // 🚀 Detecta se o script veio do cache local ou foi baixado via OTA
+    // Essa flag deve ser definida pelo seu loader.js ao aplicar o cache.
+    const loadMethod = window.CPQ_TWEAKS_LOAD_METHOD || 'OTA';
+    // exemplos esperados: 'OTA', 'Cache'
+
+    // Evita duplicação
     if (document.getElementById('cpq-debug-banner')) return;
 
     const banner = document.createElement('div');
     banner.id = 'cpq-debug-banner';
-    banner.innerText = `🧩 CPQ Tweaks ${version} carregados (${timestamp})`;
+    banner.innerText = `🧩 CPQ Tweaks ${version} (${loadMethod}) carregados\n${timestamp}`;
     banner.title = `Fonte: ${fullSource}`;
     Object.assign(banner.style, {
       position: 'fixed',
       bottom: '8px',
       right: '8px',
-      background: 'rgba(0,0,0,0.75)',
+      background: loadMethod === 'Cache' ? 'rgba(0,120,255,0.75)' : 'rgba(0,0,0,0.75)',
       color: '#fff',
       fontSize: '11px',
       fontFamily: 'monospace',
@@ -59,15 +64,22 @@
       opacity: 0.5,
       transition: 'opacity 0.3s ease',
       pointerEvents: 'none',
+      whiteSpace: 'pre-line', // quebra de linha
     });
 
-    // efeito hover
     banner.addEventListener('mouseenter', () => (banner.style.opacity = 1));
     banner.addEventListener('mouseleave', () => (banner.style.opacity = 0.5));
 
     document.body.appendChild(banner);
 
-    console.log(`[CPQ Tweaks] ${version} carregado de ${fullSource} em ${timestamp}`);
+    if (loadMethod === 'OTA') {
+      banner.animate(
+        [{ opacity: 0.2 }, { opacity: 1 }, { opacity: 0.2 }, { opacity: 0.5 }],
+        { duration: 1200, iterations: 1 }
+      );
+    }
+
+    console.log(`[CPQ Tweaks] ${version} (${loadMethod}) carregado de ${fullSource} em ${timestamp}`);
   } catch (err) {
     console.warn('[CPQ Tweaks] Erro ao exibir banner:', err);
   }
