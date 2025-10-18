@@ -4,6 +4,8 @@
 // - Loads logic/quotes.js if path includes /quotes/
 // - Loads ui/core.js and ui/quotes.js when on mobile viewport
 // - Persistent cache in localStorage, refreshed every 24h
+// - Dispatches "tweaksLoaded" when all modules have finished loading
+
 (async function(){
   const BASE = 'https://rfscarramate.github.io/cpq-tweaks/';
   const PATH = window.location.pathname.toLowerCase();
@@ -13,7 +15,6 @@
   const CACHE_TIME = 1000 * 60 * 60 * 24; // 24h
 
   function log(...args){ try{ console.log('[CPQ-Loader]', ...args); }catch(e){} }
-
   function now(){ return Date.now(); }
 
   async function fetchText(url) {
@@ -66,13 +67,35 @@
   }
 
   try {
-    await loadModule('logic/core.js');
-    if (isQuotes) await loadModule('logic/quotes.js');
+    log('Starting module loading sequence...');
+
+    const results = [];
+
+    // Load core logic
+    results.push(await loadModule('logic/core.js'));
+
+    // Load logic for /quotes/
+    if (isQuotes) results.push(await loadModule('logic/quotes.js'));
+
+    // Load UI (only for mobile)
     if (isMobile){
-      await loadModule('ui/core.js');
-      if (isQuotes) await loadModule('ui/quotes.js');
+      results.push(await loadModule('ui/core.js'));
+      if (isQuotes) results.push(await loadModule('ui/quotes.js'));
     }
-    log('Module loading complete.');
+
+    const success = results.every(Boolean);
+
+    if (success) {
+      log('✅ All modules loaded successfully.');
+    } else {
+      log('⚠️ Some modules failed to load. Continuing gracefully.');
+    }
+
+    // 🚀 Dispatch event for UI banner and dependent logic
+    window.dispatchEvent(new Event("tweaksLoaded"));
+
+    log('Event "tweaksLoaded" dispatched.');
+
   } catch(e){
     log('Loader top-level error', e);
   }
