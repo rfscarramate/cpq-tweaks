@@ -85,43 +85,56 @@
   }
 })();
 
-// === Auto-select "Employee" on Auth0 login page ===
-(function autoSelectEmployeeAuth0() {
+// === Auto-select "Employee" on Auth0 login page (hybrid optimized) ===
+(function autoSelectEmployeeAuth0Hybrid() {
   try {
-    // Verifica se estamos no domínio de autenticação Auth0 da Signify
     if (!/signify-it-production\.eu\.auth0\.com/i.test(location.hostname)) return;
 
-    const trySelect = () => {
-      // 1️⃣ tenta detectar botão com identificador de "Employee"
-      const selectors = [
-        '[data-provider*="employee"]',
-        'button.auth0-lock-social-button',
-        'button',
-        'a'
-      ];
+    let hasClicked = false;
 
-      for (const sel of selectors) {
-        const els = document.querySelectorAll(sel);
-        for (const el of els) {
-          const text = (el.textContent || el.value || '').trim().toLowerCase();
-          const provider = el.getAttribute('data-provider') || '';
-          if (text.includes('employee') || provider.includes('employee')) {
-            console.log('[CPQ Tweaks] Auto-selecting "Employee" login option...');
-            el.click();
-            return true;
-          }
-        }
+    const clickEmployee = () => {
+      if (hasClicked) return true; // evita duplos cliques
+      const el =
+        document.querySelector('[data-provider*="employee"]') ||
+        [...document.querySelectorAll('button,a,input')]
+          .find(e => (e.textContent || e.value || '').toLowerCase().includes('employee'));
+
+      if (el) {
+        hasClicked = true;
+        console.log('[CPQ Tweaks] Auto-selecting "Employee" login option...');
+        // pequeno delay pra garantir que o React anexou o listener
+        setTimeout(() => el.click(), 50);
+        return true;
       }
       return false;
     };
 
-    // 2️⃣ executa várias tentativas, pois a UI Auth0 é dinâmica
-    let attempts = 0;
-    const maxAttempts = 20;
+    // 1️⃣ tenta imediatamente (caso o botão já esteja renderizado)
+    if (clickEmployee()) return;
+
+    // 2️⃣ observa o DOM e clica assim que o botão aparecer
+    const observer = new MutationObserver(() => {
+      if (clickEmployee()) observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // 3️⃣ fallback adicional com polling leve (só 1 vez a cada 300ms)
+    let tries = 0;
+    const maxTries = 30;
     const interval = setInterval(() => {
-      attempts++;
-      if (trySelect() || attempts >= maxAttempts) clearInterval(interval);
-    }, 500);
+      tries++;
+      if (clickEmployee() || tries >= maxTries) {
+        clearInterval(interval);
+        observer.disconnect();
+      }
+    }, 300);
+
+    // 4️⃣ failsafe — encerra tudo após 10s
+    setTimeout(() => {
+      clearInterval(interval);
+      observer.disconnect();
+    }, 10000);
+
   } catch (err) {
     console.warn('[CPQ Tweaks] Erro no auto-select Employee Auth0:', err);
   }
