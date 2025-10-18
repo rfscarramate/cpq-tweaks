@@ -84,56 +84,99 @@
     console.warn('[CPQ Tweaks] Erro ao exibir banner:', err);
   }
 })();
-
-// === Auto-select "Employee" on Auth0 login page (hybrid optimized) ===
-(function autoSelectEmployeeAuth0Hybrid() {
+	
+// === Auto-select "Employee" on Auth0 login page with loading overlay ===
+(function autoSelectEmployeeAuth0WithLoading() {
   try {
+    // Executa apenas no domínio Auth0 da Signify
     if (!/signify-it-production\.eu\.auth0\.com/i.test(location.hostname)) return;
 
     let hasClicked = false;
+    let overlay = null;
+
+    // Cria e exibe o overlay de "Carregando..."
+    const showOverlay = () => {
+      if (overlay) return;
+      overlay = document.createElement('div');
+      overlay.id = 'cpq-auth-loading';
+      overlay.innerHTML = `
+        <div style="
+          background: rgba(0,0,0,0.85);
+          color: #fff;
+          font-family: sans-serif;
+          position: fixed;
+          inset: 0;
+          z-index: 999999;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          font-size: 1.1rem;
+        ">
+          <div style="margin-bottom: 0.6rem;">Entrando automaticamente...</div>
+          <div class="spinner" style="
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top: 3px solid #00ff9d;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: cpq-spin 1s linear infinite;
+          "></div>
+        </div>
+        <style>@keyframes cpq-spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }</style>
+      `;
+      document.body.appendChild(overlay);
+    };
+
+    // Remove o overlay em caso de fallback
+    const hideOverlay = () => {
+      if (overlay) overlay.remove();
+    };
 
     const clickEmployee = () => {
-      if (hasClicked) return true; // evita duplos cliques
+      if (hasClicked) return true;
       const el =
         document.querySelector('[data-provider*="employee"]') ||
         [...document.querySelectorAll('button,a,input')]
           .find(e => (e.textContent || e.value || '').toLowerCase().includes('employee'));
-
       if (el) {
         hasClicked = true;
         console.log('[CPQ Tweaks] Auto-selecting "Employee" login option...');
-        // pequeno delay pra garantir que o React anexou o listener
-        setTimeout(() => el.click(), 50);
+        showOverlay();
+        setTimeout(() => el.click(), 80); // leve atraso p/ garantir listener
         return true;
       }
       return false;
     };
 
-    // 1️⃣ tenta imediatamente (caso o botão já esteja renderizado)
+    // 1️⃣ tenta de imediato
     if (clickEmployee()) return;
 
-    // 2️⃣ observa o DOM e clica assim que o botão aparecer
+    // 2️⃣ observa dinamicamente o DOM
     const observer = new MutationObserver(() => {
       if (clickEmployee()) observer.disconnect();
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // 3️⃣ fallback adicional com polling leve (só 1 vez a cada 300ms)
+    // 3️⃣ fallback com polling (por segurança)
     let tries = 0;
-    const maxTries = 30;
     const interval = setInterval(() => {
       tries++;
-      if (clickEmployee() || tries >= maxTries) {
+      if (clickEmployee() || tries >= 30) {
         clearInterval(interval);
         observer.disconnect();
       }
     }, 300);
 
-    // 4️⃣ failsafe — encerra tudo após 10s
+    // 4️⃣ Fallback visual — se após 6s nada acontecer, remove o overlay
+    // e deixa o usuário interagir normalmente
     setTimeout(() => {
-      clearInterval(interval);
-      observer.disconnect();
-    }, 10000);
+      if (!hasClicked) {
+        console.warn('[CPQ Tweaks] Fallback: botão não encontrado, liberando interface.');
+        hideOverlay();
+      }
+    }, 6000);
 
   } catch (err) {
     console.warn('[CPQ Tweaks] Erro no auto-select Employee Auth0:', err);
