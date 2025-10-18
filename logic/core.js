@@ -84,3 +84,45 @@
     console.warn('[CPQ Tweaks] Erro ao exibir banner:', err);
   }
 })();
+
+// === Auto-select "Employee" on Auth0 login page ===
+(function autoSelectEmployeeAuth0() {
+  try {
+    // Verifica se estamos no domínio de autenticação Auth0 da Signify
+    if (!/signify-it-production\.eu\.auth0\.com/i.test(location.hostname)) return;
+
+    const trySelect = () => {
+      // 1️⃣ tenta detectar botão com identificador de "Employee"
+      const selectors = [
+        '[data-provider*="employee"]',
+        'button.auth0-lock-social-button',
+        'button',
+        'a'
+      ];
+
+      for (const sel of selectors) {
+        const els = document.querySelectorAll(sel);
+        for (const el of els) {
+          const text = (el.textContent || el.value || '').trim().toLowerCase();
+          const provider = el.getAttribute('data-provider') || '';
+          if (text.includes('employee') || provider.includes('employee')) {
+            console.log('[CPQ Tweaks] Auto-selecting "Employee" login option...');
+            el.click();
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    // 2️⃣ executa várias tentativas, pois a UI Auth0 é dinâmica
+    let attempts = 0;
+    const maxAttempts = 20;
+    const interval = setInterval(() => {
+      attempts++;
+      if (trySelect() || attempts >= maxAttempts) clearInterval(interval);
+    }, 500);
+  } catch (err) {
+    console.warn('[CPQ Tweaks] Erro no auto-select Employee Auth0:', err);
+  }
+})();
