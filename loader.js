@@ -14,6 +14,9 @@
   const CACHE_PREFIX = 'cpq_tweaks_';
   const CACHE_TIME = 1000 * 60 * 60 * 24; // 24h
 
+  // Ambiente de execução (definido por build)
+  window.CPQ_ENV = window.CPQ_ENV || "${CPQ_ENV}" || "debug";
+
   function log(...args){ try{ console.log('[CPQ-Loader]', ...args); }catch(e){} }
   function now(){ return Date.now(); }
 
@@ -67,7 +70,7 @@
   }
 
   try {
-    log('Starting module loading sequence...');
+    log(`Starting module loading sequence [env=${window.CPQ_ENV}]...`);
 
     const results = [];
 
@@ -84,16 +87,10 @@
     }
 
     const success = results.every(Boolean);
+    if (success) log('✅ All modules loaded successfully.');
+    else log('⚠️ Some modules failed to load. Continuing gracefully.');
 
-    if (success) {
-      log('✅ All modules loaded successfully.');
-    } else {
-      log('⚠️ Some modules failed to load. Continuing gracefully.');
-    }
-
-    // 🚀 Dispatch event for UI banner and dependent logic
     window.dispatchEvent(new Event("tweaksLoaded"));
-
     log('Event "tweaksLoaded" dispatched.');
 
   } catch(e){

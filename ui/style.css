@@ -1,0 +1,104 @@
+:root {
+  --cpq-bg: #f6f7f9;
+  --cpq-card: #ffffff;
+  --cpq-primary: #007bff;
+  --cpq-radius: 12px;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Inter, Roboto, Arial, sans-serif;
+  background: var(--cpq-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.cpq-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 12px;
+}
+
+.cpq-card {
+  background: var(--cpq-card);
+  border-radius: var(--cpq-radius);
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
+}
+
+input, select, textarea, button {
+  font-size: 16px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  box-sizing: border-box;
+}
+
+.cpq-bottom-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 99999;
+  display: flex;
+  gap: 8px;
+}
+
+.cpq-bottom-bar button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 999px;
+  border: none;
+  background: var(--cpq-primary);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+@media (min-width: 900px) {
+  .cpq-bottom-bar { display: none; }
+  .cpq-container { max-width: 1200px; }
+}
+
+/* ✨ Banner OTA */
+#cpq-debug-banner {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  background: rgba(0,0,0,0.82);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.4em;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  cursor: default;
+  opacity: 0.9;
+}
+#cpq-debug-banner:hover {
+  background: rgba(40,40,40,0.95);
+  opacity: 1;
+  transform: translateY(-2px);
+}
+#cpq-debug-banner button {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+#cpq-debug-banner button:hover {
+  background: rgba(255,255,255,0.25);
+  transform: scale(1.05);
+}
