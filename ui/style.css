@@ -1,10 +1,20 @@
+/**
+ * CPQ Tweaks - Estilos UI
+ * Design system responsivo e moderno com suporte a dark mode
+ */
+
+/* Variáveis CSS - Design System */
 :root {
   --cpq-bg: #f6f7f9;
   --cpq-card: #ffffff;
   --cpq-primary: #007bff;
+  --cpq-primary-hover: #0056b3;
   --cpq-radius: 12px;
+  --cpq-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  --cpq-transition: all 0.3s ease;
 }
 
+/* Reset e Base */
 html, body {
   height: 100%;
   margin: 0;
@@ -12,29 +22,34 @@ html, body {
   font-family: Inter, Roboto, Arial, sans-serif;
   background: var(--cpq-bg);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Container principal */
 .cpq-container {
   max-width: 980px;
   margin: 0 auto;
   padding: 12px;
 }
 
+/* Cards */
 .cpq-card {
   background: var(--cpq-card);
   border-radius: var(--cpq-radius);
   padding: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--cpq-shadow);
   margin-bottom: 12px;
 }
 
+/* Formulários - Inputs responsivos */
 input, select, textarea, button {
-  font-size: 16px !important;
+  font-size: 16px !important; /* Previne zoom no iOS */
   padding: 10px 12px !important;
   border-radius: 10px !important;
   box-sizing: border-box;
 }
 
+/* Barra inferior de ações (mobile) */
 .cpq-bottom-bar {
   position: fixed;
   left: 12px;
@@ -54,41 +69,60 @@ input, select, textarea, button {
   color: #fff;
   font-weight: 600;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: var(--cpq-transition);
 }
 
+.cpq-bottom-bar button:hover {
+  background: var(--cpq-primary-hover);
+  transform: translateY(-2px);
+}
+
+.cpq-bottom-bar button:active {
+  transform: translateY(0);
+}
+
+/* Responsividade - Desktop */
 @media (min-width: 900px) {
-  .cpq-bottom-bar { display: none; }
-  .cpq-container { max-width: 1200px; }
+  .cpq-bottom-bar {
+    display: none; /* Oculta barra em desktop */
+  }
+  
+  .cpq-container {
+    max-width: 1200px;
+  }
 }
 
-/* ✨ Banner OTA */
+/* Banner de Debug */
 #cpq-debug-banner {
   position: fixed;
   bottom: 18px;
   right: 18px;
-  background: rgba(0,0,0,0.82);
+  background: rgba(0, 0, 0, 0.82);
   color: #fff;
   padding: 10px 16px;
   border-radius: 12px;
   font-family: system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.4em;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   z-index: 99999;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.3s ease;
+  transition: var(--cpq-transition);
   cursor: default;
   opacity: 0.9;
 }
+
 #cpq-debug-banner:hover {
-  background: rgba(40,40,40,0.95);
+  background: rgba(40, 40, 40, 0.95);
   opacity: 1;
   transform: translateY(-2px);
 }
+
 #cpq-debug-banner button {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -98,7 +132,12 @@ input, select, textarea, button {
   cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease;
 }
+
 #cpq-debug-banner button:hover {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.25);
   transform: scale(1.05);
+}
+
+#cpq-debug-banner button:active {
+  transform: scale(0.95);
 }
